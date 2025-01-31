@@ -1,17 +1,22 @@
 package com.example.hallreservationsystem.ui.screens
 
 import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,56 +33,65 @@ fun DashboardScreen(navController: NavController) {
     val firebaseHelper = FirebaseHelper()
     var reservationList by remember { mutableStateOf<List<Reservation>>(emptyList()) }
 
-    // Fetch data from Firebase on composition
+    val context = LocalContext.current
+    var backPressedTime by remember { mutableStateOf(0L) }
+
+    // Handle double back press to exit
+    BackHandler {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - backPressedTime < 2000) {
+            // Close the app
+            android.os.Process.killProcess(android.os.Process.myPid())
+        } else {
+            backPressedTime = currentTime
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(Unit) {
         firebaseHelper.getReservations { reservations ->
             reservationList = reservations
         }
     }
 
+    // Get current date
+    val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+
+    // Filter reservations to show only today's
+    val todayReservations = reservationList.filter {
+        it.date == currentDate
+    }
+
     Scaffold(
-        topBar = { DashboardTopBar() },
+        topBar = { DashboardTopBar(navController) },
         floatingActionButton = { AddReservationButton(navController) }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F5))
+                .background(Color(0xFFF0F4F8))
                 .padding(padding)
         ) {
             WelcomeSection()
             TodayScheduleHeader()
-            ReservationList(reservationList)
-        }
-    }
-}
-
-@Composable
-fun ReservationList(reservations: List<Reservation>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        items(reservations) { reservation ->
-            ScheduleItem(
-                month = reservation.date.split("-")[1],  // Assuming date is in "YYYY-MM-DD" format
-                day = reservation.date.split("-")[2],
-                title = reservation.hallId,
-                time = reservation.timeSlot,
-                label = reservation.status // Displaying status as label
-            )
+            ReservationList(reservations = todayReservations)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardTopBar() {
+fun DashboardTopBar(navController: NavController) {
     TopAppBar(
         title = { Text("Dashboard", fontWeight = FontWeight.Bold) },
+        navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+        },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = Color(0xFF0D47A1),
-            titleContentColor = Color.White
+            containerColor = Color(0xFF1565C0),
+            titleContentColor = Color.White,
         )
     )
 }
@@ -85,17 +99,11 @@ fun DashboardTopBar() {
 @Composable
 fun AddReservationButton(navController: NavController) {
     FloatingActionButton(
-        onClick = {
-            navController.navigate("reservation")
-        },
+        onClick = { navController.navigate("reservation") },
         containerColor = Color(0xFF1E88E5),
         modifier = Modifier.padding(16.dp)
     ) {
-        Text(
-            text = "+",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Text("+", color = Color.White, style = MaterialTheme.typography.headlineMedium)
     }
 }
 
@@ -109,7 +117,8 @@ fun WelcomeSection() {
         Text(
             text = "Welcome to the Hall Reservation System!",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1565C0)
         )
     }
 }
@@ -131,13 +140,32 @@ fun TodayScheduleHeader() {
             text = "TODAY'S SCHEDULE",
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.titleLarge,
+            color = Color(0xFF1E88E5),
             modifier = Modifier.weight(1f)
         )
         Text(
             text = formattedDate,
             color = Color.Gray,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.titleMedium
         )
+    }
+}
+
+@Composable
+fun ReservationList(reservations: List<Reservation>) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        items(reservations) { reservation ->
+            ScheduleItem(
+                month = reservation.date.split("-")[1],
+                day = reservation.date.split("-")[2],
+                title = reservation.hallId,
+                time = reservation.timeSlot,
+                course = reservation.course
+            )
+        }
     }
 }
 
@@ -147,15 +175,15 @@ fun ScheduleItem(
     day: String,
     title: String,
     time: String,
-    label: String
+    course: String
 ) {
     Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
+            .padding(bottom = 12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -163,51 +191,36 @@ fun ScheduleItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Vertical accent line
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(48.dp)
-                    .background(Color(0xFF2196F3), RoundedCornerShape(2.dp))
+                    .height(60.dp)
+                    .background(Color(0xFF1E88E5), RoundedCornerShape(3.dp))
             )
 
-            // Date section
             Column(
-                modifier = Modifier.padding(horizontal = 12.dp),
+                modifier = Modifier.padding(horizontal = 5.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = month,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2196F3)
-                )
-                Text(
-                    text = day,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            ) {}
 
-            // Main content
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1E88E5)
                 )
                 Text(
-                    text = "@$time",
+                    text = time,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
             }
 
-            // Right side info
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodySmall,
+                    text = course,
+                    style = MaterialTheme.typography.titleSmall,
                     color = Color.Gray
                 )
             }

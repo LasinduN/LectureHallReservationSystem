@@ -6,5 +6,5 @@ data class Reservation(
     val hallId: String = "",
     val date: String = "",
     val timeSlot: String = "",
-    val status: String = "Pending", // Default status
+    val course: String = "", // Default status
 )

@@ -20,7 +20,7 @@ class FirebaseHelper {
                         hallId = document.getString("hallId") ?: "",
                         date = document.getString("date") ?: "",
                         timeSlot = document.getString("timeSlot") ?: "",
-                        status = document.getString("status") ?: "Pending"  // Default status if not found
+                        course = document.getString("course") ?: ""
                     )
                 }
                 onComplete(reservations)
@@ -39,7 +39,7 @@ class FirebaseHelper {
                     "hallId" to reservation.hallId,
                     "date" to reservation.date,
                     "timeSlot" to reservation.timeSlot,
-                    "status" to reservation.status
+                    "course" to reservation.course
                 )
             )
             .addOnSuccessListener {

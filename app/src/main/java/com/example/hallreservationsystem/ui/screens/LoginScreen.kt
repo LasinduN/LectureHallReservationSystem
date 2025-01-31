@@ -1,6 +1,5 @@
 package com.example.hallreservationsystem.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,25 +8,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
-    val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -56,43 +54,66 @@ fun LoginScreen(navController: NavHostController) {
 
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = false
+                        errorMessage = null
+                    },
                     label = { Text("Email") },
+                    isError = emailError,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF0D47A1),
-                        unfocusedBorderColor = Color.Gray
+                        focusedBorderColor = if (emailError) Color.Red else Color(0xFF0D47A1),
+                        unfocusedBorderColor = if (emailError) Color.Red else Color.Gray
                     )
                 )
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        passwordError = false
+                        errorMessage = null
+                    },
                     label = { Text("Password") },
                     visualTransformation = PasswordVisualTransformation(),
+                    isError = passwordError,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF0D47A1),
-                        unfocusedBorderColor = Color.Gray
+                        focusedBorderColor = if (passwordError) Color.Red else Color(0xFF0D47A1),
+                        unfocusedBorderColor = if (passwordError) Color.Red else Color.Gray
                     )
                 )
 
-                if (errorMessage.isNotEmpty()) {
-                    Text(
-                        text = errorMessage,
-                        color = Color.Red,
-                        modifier = Modifier.padding(8.dp)
-                    )
+                if (errorMessage != null) {
+                    Snackbar(
+                        modifier = Modifier.padding(8.dp),
+                        backgroundColor = Color.Red,
+                        contentColor = Color.White
+                    ) {
+                        Text(text = errorMessage ?: "Unknown error", style = MaterialTheme.typography.body2)
+                    }
                 }
 
                 Button(
                     onClick = {
+                        if (email.isBlank()) {
+                            emailError = true
+                            errorMessage = "Email cannot be empty"
+                            return@Button
+                        }
+                        if (password.isBlank()) {
+                            passwordError = true
+                            errorMessage = "Password cannot be empty"
+                            return@Button
+                        }
+
                         isLoading = true
                         auth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
@@ -108,10 +129,11 @@ fun LoginScreen(navController: NavHostController) {
                         .fillMaxWidth()
                         .padding(8.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF0D47A1))
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF0D47A1)),
+                    enabled = !isLoading
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text("Sign In", color = Color.White)
                     }
@@ -128,23 +150,11 @@ fun LoginScreen(navController: NavHostController) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, apiLevel = 34)
 @Composable
 fun LoginScreenPreview() {
     val navController = rememberNavController()
-
-    // Ensure we are in a MaterialTheme and NavHost environment
     MaterialTheme {
-        // Use Scaffold to provide a basic layout structure
-        Scaffold { paddingValues ->
-            NavHost(
-                navController = navController,
-                startDestination = "login",
-                modifier = Modifier.padding(paddingValues)
-            ) {
-                composable("login") { LoginScreen(navController) }
-                // Other composables like "dashboard" can be added here as well
-            }
-        }
+        LoginScreen(navController = navController)
     }
 }

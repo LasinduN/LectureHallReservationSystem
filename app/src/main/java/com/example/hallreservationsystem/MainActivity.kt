@@ -1,6 +1,7 @@
 package com.example.hallreservationsystem
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.google.firebase.FirebaseApp
@@ -16,6 +17,8 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
+        // Log Firebase initialization status
+        Log.d("Firebase", "Initialized: ${FirebaseApp.getApps(this).size > 0}")
 
         setContent {
             HallReservationSystemTheme {

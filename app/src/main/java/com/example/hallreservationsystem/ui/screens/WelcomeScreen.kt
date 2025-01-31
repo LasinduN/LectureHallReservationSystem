@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.*
+
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.hallreservationsystem.R
@@ -29,13 +31,13 @@ fun WelcomeScreen(navController: NavHostController) {
     ) {
         // Decorative top wave
         Image(
-            painter = painterResource(id = R.drawable.wave_top), // Add a wave vector asset
+            painter = painterResource(id = R.drawable.wave_top),
             contentDescription = "Top Wave",
             modifier = Modifier
-                .align(Alignment.TopStart)
                 .fillMaxWidth(),
-            contentScale = ContentScale.FillWidth
+            contentScale = ContentScale.FillWidth // Stretch to fill the width
         )
+
 
         // Welcome message at the top-left
         Text(
@@ -43,8 +45,7 @@ fun WelcomeScreen(navController: NavHostController) {
             style = MaterialTheme.typography.h4,
             color = Color(0xFF0D47A1), // Dark blue color
             modifier = Modifier
-                .padding(24.dp)
-                .align(Alignment.TopStart)
+                .padding(top = 60.dp, start = 24.dp)
         )
 
         // Title and buttons centered on the screen
@@ -54,56 +55,54 @@ fun WelcomeScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize()
         ) {
             // App logo or icon
-            Icon(
-                painter = painterResource(id = R.drawable.ic_app_logo), // Add your app logo
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = "App Logo",
-                tint = Color(0xFF0D47A1), // Dark blue color
                 modifier = Modifier
-                    .size(120.dp)
-                    .padding(bottom = 24.dp)
+                    .size(300.dp)
+                    .offset(y = (-30).dp)
             )
 
-            Text(
-                text = "Lab and Lecture Hall Reservation System",
-                style = MaterialTheme.typography.h4.copy(fontWeight = FontWeight.Bold),
-                textAlign = TextAlign.Center,
-                color = Color(0xFF0D47A1), // Dark blue color
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-            )
-
-            // Login button
+            // Login Button (Primary Action)
             Button(
                 onClick = { navController.navigate("login") },
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF0D47A1)) // Dark blue color
+                    .fillMaxWidth(0.7f) // Slightly wider
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp), // Softer rounded corners
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color(0xFF0D47A1), // Deep Blue
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.elevation(8.dp) // Adds depth with shadow
             ) {
                 Text(
                     text = "Login",
-                    color = Color.White,
-                    style = MaterialTheme.typography.button
+                    style = MaterialTheme.typography.button.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp)) // More space between buttons
 
-            // Register button
+            // Register Button (Secondary Action)
             Button(
                 onClick = { navController.navigate("register") },
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF42A5F5)) // Light blue color
+                    .fillMaxWidth(0.7f)
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color(0xFF42A5F5), // Light Blue
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.elevation(8.dp)
             ) {
                 Text(
                     text = "Register",
-                    color = Color.White,
-                    style = MaterialTheme.typography.button
+                    style = MaterialTheme.typography.button.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
             }
+
         }
 
         // Decorative bottom wave
